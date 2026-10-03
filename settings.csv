@@ -1,0 +1,2 @@
+Name,Type,Display,DefaultValue,Optional,Popup
+region,string,Phone region,US,True,Yes

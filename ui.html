@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Free OSINT</title>
+  <style>
+    :root { --bg:#f4f1ea; --ink:#1c1915; --line:#d9d1c3; --card:#fffdf8; --accent:#8a3d12; }
+    * { box-sizing: border-box; }
+    body { margin:0; font:15px/1.45 Georgia, serif; background:var(--bg); color:var(--ink); }
+    header { padding:28px 32px 8px; }
+    h1 { font-weight:500; font-size:28px; margin:0; }
+    p.lead { margin:6px 0 0; color:#5c564c; }
+    form { display:flex; gap:8px; padding:16px 32px 8px; flex-wrap:wrap; }
+    input, select, button { font:inherit; border:1px solid var(--line); background:white; padding:8px 10px; }
+    button { background:var(--accent); color:white; border-color:var(--accent); cursor:pointer; }
+    main { padding:8px 32px 40px; }
+    .counts { color:#5c564c; min-height:1.4em; }
+    .group { margin-top:22px; }
+    .group h2 { font-size:13px; letter-spacing:.08em; text-transform:uppercase; margin:0 0 8px; color:#6b645b; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:10px; }
+    article { background:var(--card); border:1px solid var(--line); padding:10px 12px; }
+    article b { display:block; word-break:break-all; }
+    .src { margin-top:6px; }
+    .err { color:#8a3d12; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Free OSINT</h1>
+    <p class="lead">Keyless passive feeds. Same entities the Maltego transforms return.</p>
+  </header>
+  <form id="f">
+    <input id="q" name="q" placeholder="domain, IP, email, or phone" size="32" required>
+    <select id="kind">
+      <option value="all">All free feeds</option>
+      <option value="dns">DNS</option>
+      <option value="contacts">Emails and phones</option>
+      <option value="subs">Subdomains</option>
+      <option value="breaches">HIBP catalog</option>
+      <option value="org">Wikidata</option>
+      <option value="crawl">Common Crawl</option>
+      <option value="ip">IP infrastructure</option>
+    </select>
+    <button>Run</button>
+  </form>
+  <main>
+    <div class="counts" id="counts"></div>
+    <div id="out"></div>
+  </main>
+  <script>
+    const form = document.getElementById("f");
+    form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const counts = document.getElementById("counts");
+      const out = document.getElementById("out");
+      counts.textContent = "Running...";
+      out.innerHTML = "";
+      const res = await fetch("/api/run", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({q: document.getElementById("q").value, kind: document.getElementById("kind").value})
+      });
+      const data = await res.json();
+      const groups = {};
+      for (const row of data.entities || []) (groups[row.type] ||= []).push(row);
+      counts.textContent = Object.entries(groups).map(([k,v]) => k + " " + v.length).join(" | ") || "No entities";
+      if (data.errors && data.errors.length) counts.innerHTML += "<div class='err'>" + data.errors.join("<br>") + "</div>";
+      for (const [type, rows] of Object.entries(groups)) {
+        const section = document.createElement("section");
+        section.className = "group";
+        section.innerHTML = "<h2>" + type + "</h2>";
+        const cards = document.createElement("div");
+        cards.className = "cards";
+        for (const row of rows.slice(0, 60)) {
+          const card = document.createElement("article");
+          card.innerHTML = "<b></b><div class='src'></div>";
+          card.querySelector("b").textContent = row.value;
+          card.querySelector(".src").textContent = (row.labels || []).join(" | ");
+          cards.appendChild(card);
+        }
+        section.appendChild(cards);
+        out.appendChild(section);
+      }
+    });
+  </script>
+</body>
+</html>
