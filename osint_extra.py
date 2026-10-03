@@ -1,8 +1,8 @@
-"""Later free feeds. Imported lazily so this module can use osintlib helpers."""
+"""Later free feeds."""
 
 import json
 
-from osintlib import SESSION, TIMEOUT, ent, get, under
+from osint_dns import TIMEOUT, ent, get, under
 
 
 def ipinfo(ip: str) -> list[dict]:
