@@ -5,6 +5,7 @@ from transforms.DomainToContacts import DomainToContacts
 from transforms.DomainToCrawl import DomainToCrawl
 from transforms.DomainToDNS import DomainToDNS
 from transforms.DomainToDorks import DomainToDorks
+from transforms.DomainToGitHub import DomainToGitHub
 from transforms.DomainToOrg import DomainToOrg
 from transforms.DomainToRDAP import DomainToRDAP
 from transforms.DomainToSubdomains import DomainToSubdomains
